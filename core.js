@@ -1,7 +1,7 @@
 ///
 ///  GameClass: ゲームの描写の補佐などを担当
 ///
-/* global $ */
+/* global $,performance */
 
 ///静的フィールドの宣言
 var game_data;
@@ -57,6 +57,7 @@ class Game {
             });
             var sprite_name = l.name;
             var next_sprite_name = sprite_name;
+            var prev_sprite_name = sprite_name;
             var multiMax = 1;
             var MultiMode = true;
             //マルチモードかどうか確認
@@ -70,12 +71,15 @@ class Game {
                 next_sprite_name = sprite_name;
                 if (multiMax - multiCount >= 1)
                     next_sprite_name = sprite_name + (multiCount + 1).toString();
-                if (multiCount > 0)
+                if (multiCount > 0) {
+                    prev_sprite_name = sprite_name + (multiCount - 1).toString();
                     sprite_name += multiCount.toString();
+                }
                 if (that.Sprites == undefined) that.Sprites = {};
                 that.Sprites[sprite_name] = {
                     SpriteName    : sprite_name,
                     NextSpriteName: next_sprite_name,
+                    PrevSpriteName: prev_sprite_name,
                     BaseName      : l.name,
                     IsChild       : multiCount > 0,
                     IsLast        : multiCount + 1 == multiMax,
@@ -104,6 +108,7 @@ class Game {
                         
                     },
                     Next          : function() { return that.Sprites[this.NextSpriteName]; },
+                    Prev          : function() { return that.Sprites[this.PrevSpriteName]; },
                     Base          : function() { return that.Sprites[this.BaseName]; },
                     Size          : {
                         Width    : 0,
@@ -218,7 +223,7 @@ class Game {
         $(window).keydown(this.Game_KeyDown);
         $(window).keyup(this.Game_KeyUp);
         
-        
+        that.lasttime = that.Now;
         var mainloop = function() {
             that.UpdateGameClass();
             that.updateGame();
@@ -230,9 +235,13 @@ class Game {
                 window.oRequestAnimationFrame      ||
                 window.msRequestAnimationFrame     ||
                 null ;
+        
         if ( animFrame !== null ) {
             var recursiveAnim = function() {
-                mainloop();
+                if (that.Now - that.lasttime > that.FPS) {
+                    mainloop();
+                    that.lasttime = that.Now;
+                }
                 animFrame(recursiveAnim, that.canvas);
             };
             // start the mainloop
@@ -240,6 +249,16 @@ class Game {
         } else {
             setInterval(mainloop, that.FPS);
         }
+    }
+    
+    get Now() {
+        var now = window.performance && (
+            performance.now || 
+            performance.mozNow || 
+            performance.msNow || 
+            performance.oNow || 
+            performance.webkitNow );
+        return ( now && now.call( performance ) ) || ( new Date().getTime() );
     }
     
     get config() {
@@ -360,8 +379,12 @@ class Game {
     }
     
     UpdateSprite(SpriteName, fn) {
-        if (this.CanSpriteDo(SpriteName))
-            fn(this.Sprites[SpriteName]);
+        if (this.CanSpriteDo(SpriteName)) {
+            var Sprite = this.Sprites[SpriteName];
+            fn(Sprite);
+            Sprite.Position.LF = Math.floor(Sprite.Position.LF / Sprite.PixelConfig.CellSize.width) * Sprite.PixelConfig.CellSize.width;
+            Sprite.Position.TP = Math.floor(Sprite.Position.TP / Sprite.PixelConfig.CellSize.height) * Sprite.PixelConfig.CellSize.height;
+        }
     }
     
     DrawSprite(SpriteName, fn) {
@@ -406,7 +429,7 @@ class Game {
     GetUserProperty(SpriteName, PropName) {
         var that = this;
         if (that.CanSpriteDo(SpriteName)) {
-            var Sprite = this.Sprites(SpriteName);
+            var Sprite = this.Sprites[SpriteName];
             return Sprite.User[PropName];
         }
         return false;
@@ -415,7 +438,7 @@ class Game {
     SetUserProperty(SpriteName, PropName, Prop) {
         var that = this;
         if (that.CanSpriteDo(SpriteName)) {
-            var Sprite = this.Sprites(SpriteName);
+            var Sprite = this.Sprites[SpriteName];
             Sprite.User[PropName] = Prop;
         }
     }

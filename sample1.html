@@ -1,0 +1,33 @@
+<!doctype html>
+<html>
+    <head>
+        <title>
+            サンプル1
+        </title>
+        <script src="jquery-1.12.4.min.js"></script>
+        <script src="jcanvas.min.js"></script>
+        <script src="core.js"></script>
+    </head>
+    <body>
+        <canvas id="canvas" name="canvas"></canvas>
+        <script>
+            var myGame;
+            $(document).ready(function() {
+                myGame = new Game("myGame");
+                myGame.config = "config.conf";
+                myGame.updateFunction = updateGame;
+                myGame.drawFunction = drawGame;
+                myGame.Initialize();
+            });
+            
+            var updateGame = function() {
+                //更新
+            };
+            
+            var drawGame = function() {
+                //描写
+                myGame.DrawSprite("hoge"); 
+            };
+        </script>
+    </body>
+</html>

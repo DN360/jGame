@@ -1,0 +1,39 @@
+<!doctype html>
+<html>
+    <head>
+        <title>
+            サンプル2
+        </title>
+        <script src="jquery-1.12.4.min.js"></script>
+        <script src="jcanvas.min.js"></script>
+        <script src="core.js"></script>
+    </head>
+    <body>
+        <canvas id="canvas" name="canvas"></canvas>
+        <script>
+            var myGame;
+            $(document).ready(function() {
+                myGame = new Game("myGame");
+                myGame.config = "config.conf";
+                myGame.updateFunction = updateGame;
+                myGame.drawFunction = drawGame;
+                myGame.Initialize();
+                myGame.SetUserProperty("fuga", "time", 0);
+            });
+            
+            var updateGame = function() {
+                //更新
+                myGame.UpdateSprite("fuga", function(Sprite) {
+                    Sprite.User.time += 0.05;
+                    Sprite.Position.LF = 400 + Math.cos(Sprite.User.time) * 200 - Sprite.Size.Width / 2;
+                    Sprite.Position.TP = 300 + Math.sin(Sprite.User.time * 2) * 100 - Sprite.Size.Height / 2;
+                });
+            };
+            
+            var drawGame = function() {
+                //描写
+                myGame.DrawSprite("fuga");
+            };
+        </script>
+    </body>
+</html>
