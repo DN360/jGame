@@ -1,0 +1,2 @@
+# jGame
+jQuery+jCanvasでドット絵のゲームを作ろうという企画。jGradiusの方で使っているスプライト操作の部分だけ
